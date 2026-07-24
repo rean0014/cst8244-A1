@@ -1,3 +1,6 @@
 /.metadata/
 "Local_VM71" 
 Local_VM71/output/ 
+des_controller/build/
+des_display/build/
+des_inputs/build/
