@@ -1,0 +1,10 @@
+# Disk DescriptorFile
+version=1
+encoding="UTF-8"
+parentCID=ffffffff
+isNativeSnapshot="no"
+createType="monolithicFlat"
+
+# Extent description
+RW 266498 FLAT "disk-vmware" 0
+

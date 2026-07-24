@@ -1,0 +1,5 @@
+@# local/snippets/data_files.custom
+@# Placeholder for local list of files to add to data partition
+@
+@[perms=400] var/ssh/ssh_host_rsa_key=local/misc_files/ssh_host_rsa_key
+@[perms=400] var/ssh/ssh_host_ed25519_key=local/misc_files/ssh_host_ed25519_key

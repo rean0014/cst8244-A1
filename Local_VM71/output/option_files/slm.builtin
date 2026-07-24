@@ -1,0 +1,169 @@
+  <SLM:component name="slog2">
+    <SLM:command>__IFS_PATH__/slogger2</SLM:command>
+    <SLM:args>DROPROOT_N(__SLOGGER_ID__) -P /pps/slogger2</SLM:args>
+    <SLM:waitfor wait="pathname">/dev/slog</SLM:waitfor>
+    SLMTYPE_P(slogger2_t)SLMUSER_P(__SLOGGER_ID__)
+  </SLM:component>
+
+#if defined(__HAS_PCI__)
+  <SLM:component name="pci-server">
+    <SLM:depend>slog2</SLM:depend>
+    <SLM:command>pci-server</SLM:command>
+    <SLM:args>--config=__IFS_PATH__/pci_server.cfg</SLM:args>
+    <SLM:waitfor wait="pathname">/dev/pci</SLM:waitfor>
+    SLMTYPE_P(pci_server_t)SLMUSER_P(__PCI_SERVER_ID__)
+  </SLM:component>
+#endif
+
+  <SLM:component name="devb">
+#if defined(OPT_TCG_yes) || defined(OPT_TCG_cmdline)
+    <SLM:depend>tabrm</SLM:depend>
+#elif defined(__HAS_PCI__)
+    <SLM:depend>pci-server</SLM:depend>
+#else
+    <SLM:depend>slog2</SLM:depend>
+#endif
+    <SLM:command>__DEVB_NAME__</SLM:command>
+    <SLM:args>cam SUBST_N(cam user=__DEVB_ID__:__DEVB_ID__) blk cache=64M,auto=partition,vnode=2000,ncache=2000,commit=low __DEVB_OPTS__</SLM:args>
+    <SLM:waitfor wait="pathname">/dev/hd0</SLM:waitfor>
+    SLMTYPE_P(devb_t)SLMUSER_P(__DEVB_ID__)
+  </SLM:component>
+
+  <SLM:component name="mount-fs">
+    <SLM:depend>devb</SLM:depend>
+    <SLM:command>mount_fs.sh</SLM:command>
+    <SLM:waitfor wait="exit" />
+    SLMTYPE_P(slm_t)
+  </SLM:component>
+
+  /* <!-- Anything that isn't in __IFS_PATH__ should depend on this --> */
+  <SLM:component name="root-fs">
+    <SLM:depend>mount-fs</SLM:depend>
+    <SLM:command launch="builtin">system</SLM:command>
+    <SLM:args>
+    setconf _CS_HOSTNAME __OPT_HOSTNAME__
+    </SLM:args>
+    SLMTYPE_P(bogus_t)
+  </SLM:component>
+
+  <SLM:component name="syslogd">
+    <SLM:depend>devc</SLM:depend>
+    <SLM:depend state="stateless">root-fs</SLM:depend>
+    <SLM:command>syslogd</SLM:command>
+    <SLM:args>-f /system/etc/syslog.conf -d</SLM:args>
+    SLMTYPE_P(syslogd_t)SLMUSER_P(__SYSLOGD_ID__)
+  </SLM:component>
+
+  <SLM:component name="random">
+    <SLM:depend state="stateless">root-fs</SLM:depend>
+    <SLM:command>random</SLM:command>
+    <SLM:args>-t -p DROPROOT_NP(__RANDOM_ID__)  -s /data/var/random/rnd-seed __RANDOM_INTERUPT_ENTROPY__ __RANDOM_OTHER_ENTROPY__</SLM:args>
+    SLMTYPE_P(random_t)
+    <SLM:waitfor wait="pathname">/dev/random</SLM:waitfor>
+  </SLM:component>
+
+  <SLM:component name="devc">
+    <SLM:depend state="stateless">root-fs</SLM:depend>
+    <SLM:command>__DEVC_NAME__</SLM:command>
+    <SLM:args>-e __DEVC_OPTS__</SLM:args>
+    <SLM:waitfor wait="pathname">__DEVC_PATH__</SLM:waitfor>
+    SLMTYPE_P(devc_con_t)SLMUSER_P(__DEVC_ID__)
+  </SLM:component>
+
+  <SLM:component name="pipe">
+    <SLM:depend state="stateless">root-fs</SLM:depend>
+    <SLM:command>pipe</SLM:command>
+    <SLM:args>DROPROOT_NP(__PIPE_ID__)</SLM:args>
+    <SLM:waitfor wait="pathname">/dev/pipe</SLM:waitfor>
+    SLMTYPE_P(pipe_t)
+  </SLM:component>
+
+  <SLM:component name="dumper">
+    <SLM:depend state="stateless">root-fs</SLM:depend>
+    <SLM:command>dumper</SLM:command>
+    <SLM:args>DROPROOT_N(__DUMPER_ID__)</SLM:args>
+    SLMTYPE_P(dumper_t)SLMUSER_P(__DUMPER_ID__)
+  </SLM:component>
+
+  <SLM:component name="devc-pty">
+    <SLM:depend state="stateless">root-fs</SLM:depend>
+    <SLM:command>devc-pty</SLM:command>
+    SLMTYPE_P(devc_pty_t)SLMUSER_P(__DEVC_PTY_ID__)
+  </SLM:component>
+
+  <SLM:component name="io-pkt">
+    <SLM:depend state="stateless">root-fs</SLM:depend>
+    <SLM:command>io-pkt-v6-hc</SLM:command>
+    <SLM:args>DROPROOT_N(__IO_PKT_ID__) -d __NETDRIVER__ __IOPKT_TCPIP_OPTS__ __IOPKT_QNET_OPTS__</SLM:args>
+    <SLM:waitfor wait="pathname">/dev/socket</SLM:waitfor>
+    SLMTYPE_P(io_pkt_t)SLMUSER_P(__IO_PKT_ID__)
+  </SLM:component>
+
+  <SLM:component name="network-init">
+    <SLM:depend>io-pkt</SLM:depend>
+    <SLM:command>start_net.sh</SLM:command>
+    <SLM:waitfor wait="exit" />
+    SLMTYPE_P(slm_t)
+  </SLM:component>
+
+#if defined(OPT_IP_dhcp)
+  <SLM:component name="dhclient">
+    <SLM:depend>network-init</SLM:depend>
+    <SLM:command>dhclient</SLM:command>
+    <SLM:args>-d -q -nw --no-pid -cf /system/etc/dhclient.conf -sf /system/xbin/_dhclient-script -lf /data/var/dhclient/leases -m __NETDEVICE__</SLM:args>
+    SLMTYPE_P(dhclient_t)SLMUSER_P(__DHCLIENT_ID__)
+  </SLM:component>
+#endif
+
+  <SLM:component name="ssh">
+    <SLM:depend>network-init</SLM:depend>
+    <SLM:command launch="pathname">/system/xbin/sshd</SLM:command>
+    <SLM:args>-f /system/etc/ssh/sshd_config -D</SLM:args>
+    SLMTYPE_P(ssh_t)
+  </SLM:component>
+
+  <SLM:component name="qconn">
+    <SLM:depend>network-init</SLM:depend>
+    <SLM:command>qconn</SLM:command>
+    SLMTYPE_P(qconn_t)SLMUSER_P(__QCONN_ID__)
+  </SLM:component>
+
+  <SLM:component name="console">
+    <SLM:depend>devc</SLM:depend>
+    <SLM:command launch="session">__IFS_PATH__/ksh</SLM:command>
+    <SLM:args>-l</SLM:args>
+    <SLM:tty>__DEVC_PATH__</SLM:tty>
+    SLMTYPE_P(console_t)
+  </SLM:component>
+
+  <SLM:component name="mq">
+    <SLM:depend state="stateless">root-fs</SLM:depend>
+    <SLM:command>mq</SLM:command>
+    <SLM:waitfor wait="pathname">/dev/mq</SLM:waitfor>
+    SLMTYPE_P(mq_t)SLMUSER_P(__MQ_ID__)
+  </SLM:component>
+
+  <SLM:component name="mqueue">
+    <SLM:depend state="stateless">root-fs</SLM:depend>
+    <SLM:command>mqueue</SLM:command>
+    <SLM:waitfor wait="pathname">/dev/mqueue</SLM:waitfor>
+    SLMTYPE_P(mqueue_t)SLMUSER_P(__MQUEUE_ID__)
+  </SLM:component>
+
+  <SLM:component name="pps">
+    <SLM:depend state="stateless">root-fs</SLM:depend>
+    <SLM:command>pps</SLM:command>
+    <SLM:waitfor wait="pathname">/pps</SLM:waitfor>
+    <SLM:args>DROPROOT_N(__PPS_ID__) -p /data/var/pps</SLM:args>
+    SLMTYPE_P(pps_t)SLMUSER_P(__PPS_ID__)
+  </SLM:component>
+
+  <SLM:component name="post_start">
+    <SLM:depend state="stateless">root-fs</SLM:depend>
+    <SLM:depend state="stateless">pps</SLM:depend>
+    <SLM:depend state="stateless">mq</SLM:depend>
+    <SLM:depend state="stateless">ssh</SLM:depend>
+    <SLM:command>__IFS_PATH__/post_startup.sh</SLM:command>
+    <SLM:waitfor wait="exit" />
+    SLMTYPE_P(slm_t)
+  </SLM:component>

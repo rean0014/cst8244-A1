@@ -1,0 +1,172 @@
+
+###############################################################################
+#
+# IFS Build file
+#
+###############################################################################
+
+[search=${MKFS_PATH}]
+
+
+[uid=0 gid=0 dperms=0555 perms=0555]
+
+[image=20m]
+[virtual=x86_64,bios +compress] boot = {
+    startup-x86
+    [+keeplinked uid=0 gid=0 perms=0700 ]  PATH=/proc/boot:/system/xbin LD_LIBRARY_PATH=/proc/boot:/system/lib:/system/lib/dll CONFIG_PATH=/proc/boot:/system/etc procnto-smp-instr -v -mr -d 0777 -u 0777  
+}
+
+[+script] startup-script = {
+    # As various programs expect some binaries in fixed location, create procmgr symlinks to them.
+    # We can't specify these paths for the files themselves since if we build a non-union system,
+    # the actual paths would be things like /ifs/bin/sh
+    procmgr_symlink /proc/boot/ksh /bin/ksh
+    procmgr_symlink /proc/boot/ksh /bin/sh
+    procmgr_symlink /system/xbin/cp /bin/cp
+    procmgr_symlink /system/xbin/rm /bin/rm
+    procmgr_symlink /dev/shmem /tmp
+    procmgr_symlink /system/xbin/ssh /usr/bin/ssh
+    procmgr_symlink /proc/boot/ldqnx-64.so.2 /usr/lib/ldqnx-64.so.2
+
+    # **FIXME**
+    # Processes should usually use _CS_CONFIG_PATH to locate configuration files.  But for now
+    # create symlinks for some locations that can't move.
+    procmgr_symlink /system/etc/terminfo /usr/lib/terminfo
+    procmgr_symlink /data/var/etc /etc
+    procmgr_symlink /data/var /var
+    procmgr_symlink /system/etc/profile /etc/profile
+
+    TERM=qansi
+    PATH=/proc/boot:/system/xbin
+    LD_LIBRARY_PATH=/proc/boot:/system/lib:/system/lib/dll
+    PCI_BKWD_COMPAT_MODULE=/proc/boot/pci_bkwd_compat.so
+    PCI_SLOG_MODULE=pci_slog2.so
+    PCI_CAP_MODULE_DIR=/proc/boot
+    #50.builtin
+    setconf TIMEZONE UTC0
+    rtc hw
+    mount -uo noexec /dev/shmem
+# local/snippets/ifs_start.custom
+# Commands executed from ifs start-up script prior to invoking main start-up script or slm
+    #~30.builtin
+    /proc/boot/startup.sh
+    #~80.builtin
+
+    display_msg "Startup complete"
+    uname -a
+
+    reopen /dev/con1
+}
+
+startup.sh=output/build/startup.sh
+post_startup.sh=output/build/post_startup.sh
+mount_fs.sh=output/build/mount_fs.sh
+
+lib/libc.so
+lib/libgcc_s.so.1
+lib/libm.so
+lib/libcam.so
+lib/dll/io-blk.so
+lib/dll/cam-disk.so
+lib/dll/fs-qnx6.so
+lib/dll/fs-dos.so
+lib/libslog2.so
+usr/lib/libcrypto.so
+lib/libsocket.so
+usr/lib/libz.so
+lib/libslog2shim.so
+lib/libsecpol.so.1
+lib/libpci.so
+lib/libjson.so.1
+
+#############################################
+### Utilities
+#############################################
+bin/on
+bin/rm
+# waitfor and ability are same binary as on
+[type=link] waitfor=on
+[type=link] ability=on
+bin/echo
+bin/ln
+sbin/rtc
+bin/setfacl
+bin/ksh
+# Allow sh to be found in PATH
+[type=link] sh=ksh
+bin/mount
+usr/bin/getconf
+# getconf and setconf are same binary
+[type=link] setconf=getconf
+
+#############################################
+### Services
+#############################################
+sbin/devb-eide
+bin/slogger2
+
+
+#############################################
+### PCI
+#############################################
+
+[perms=0444] pci_server.cfg = {
+[buscfg]
+DO_BUS_CONFIG=no
+
+[envars]
+PCI_DEBUG_MODULE=pci_debug2.so
+PCI_HW_MODULE=pci_hw-Intel_x86.so
+PCI_HW_CONFIG_FILE=/proc/boot/pci_hw.cfg
+}
+
+[perms=0444] pci_hw.cfg = {
+[interrupts]
+B0:D17:F0    A    18
+B0:D17:F0    B    19
+B0:D17:F0    C    16
+B0:D17:F0    D    17
+B3:D0:F0     A    18
+B3:D0:F0     B    19
+B3:D0:F0     C    16
+B3:D0:F0     D    17
+}
+
+lib/dll/pci/pci_hw-Intel_x86.so
+lib/dll/pci/pci_slog2.so
+lib/dll/pci/pci_cap-0x05.so
+lib/dll/pci/pci_cap-0x10.so
+lib/dll/pci/pci_cap-0x11.so
+lib/dll/pci/pci_strings.so
+lib/dll/pci/pci_bkwd_compat.so
+lib/dll/pci/pci_debug2.so
+sbin/pci-server
+
+
+#############################################
+### Miscellaneous
+#############################################
+# Capture the build information
+
+[perms=0444] build/options=local/options
+[perms=0444] build/options.inc=output/inc/options.inc
+[perms=0444] build/ifs.build=output/build/ifs.build
+[perms=0444] build/system.build=output/build/system.build
+[perms=0444] build/data.build=output/build/data.build
+
+#############################################
+### Customization
+#############################################
+
+usr/lib/libqcrypto.so
+lib/dll/qcrypto-openssl.so
+lib/libqh.so.1
+lib/libregex.so.1
+
+[uid=0 gid=0 perms=0444] qcrypto.conf={
+openssl tags=*
+}
+# local/snippets/ifs_files.custom
+# Placeholder for local list of files to add to ifs
+
+usr/lib/ldqnx-64.so.2
