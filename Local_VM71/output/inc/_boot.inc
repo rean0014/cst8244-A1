@@ -1,5 +1,0 @@
-@[image=__BOOT_ADDR__]
-@[virtual=__VIRTUAL__ +compress] boot = {
-@    __STARTUP__
-@    [+keeplinked uid=0 gid=0 perms=0700 __MODULE_QVM__]  PATH=__PROC_PATH__ LD_LIBRARY_PATH=__PROC_LIB__ CONFIG_PATH=__IFS_PATH__:/system/etc __PROCNTO__ __PROCNTO_OPTIONS__ __EXTRA_PROC_OPTIONS__
-@}

@@ -1,1 +1,0 @@
-#define __LD_QNX_IFS_LINK__ procmgr_symlink __IFS_PATH__/__LD_QNX__ /usr/lib/__LD_QNX__

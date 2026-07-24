@@ -1,6 +1,0 @@
-lib/libssl.so.2.1=usr/lib/libssl.so.2.1
-lib/libcurl.so.10=usr/lib/libcurl.so.10
-lib/libcares.so.4=usr/lib/libcares.so.4
-/xbin/setkey=usr/sbin/setkey
-[perms=555] /xbin/rununittests=__TOOL_DIR__/inputs/rununittests
-[perms=555] xbin/cleanup_tmp=__TOOL_DIR__/inputs/cleanup_tmp
