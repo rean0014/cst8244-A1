@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 /.metadata/
 =======
 # Prerequisites
@@ -57,3 +58,6 @@ dkms.conf
 # debug information files
 *.dwo
 >>>>>>> f8582d9e8d5317c7dbae42a837e33e269c3650c2
+=======
+
+>>>>>>> 4c4c5b92ff371e7f3001f834f1356e4f24096e1e
