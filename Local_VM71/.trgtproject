@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<trgtproject id="com.qnx.tools.ide.target.core.target">
+    <data>
+        <item id="com.qnx.tools.ide.target">
+            <project>
+                <name value="Local_VM71"/>
+            </project>
+            <connection>
+                <TIMEZONE value="UTC0"/>
+                <HASVERSION value="1"/>
+                <VERSION value="2025/11/05-09:24:15EST"/>
+                <RELEASE value="7.1.0"/>
+                <SYSNAME value="QNX"/>
+                <QCONN_VERSION value="1.4.207944"/>
+                <ENDIAN value="le"/>
+                <NUM_SRVCS value="1"/>
+                <ARCHITECTURE value="x86_64"/>
+                <CPU value="x86_64"/>
+                <HOSTNAME value="Local_VM71"/>
+                <OS value="nto"/>
+                <DOMAIN value="localdomain"/>
+                <MACHINE value="x86pc"/>
+            </connection>
+            <qconnport value="8000"/>
+            <qconnostype value="nto"/>
+            <qconnguid value="7b31413a-60b9-4ba1-b3df-f87f24cac402"/>
+            <qconnhostname value="192.168.188.128"/>
+        </item>
+    </data>
+</trgtproject>
