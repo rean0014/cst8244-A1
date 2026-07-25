@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
 			break;
 
 		if (strcmp(line, "exit") == 0) {
+			printf("Exit Display\nExiting Controller\n");
 			ConnectDetach(controller_coid);
 			return EXIT_SUCCESS;
 		}
